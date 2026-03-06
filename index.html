@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tug of Quiz – Kéo Co Trí Tuệ</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ══════ INTRO ══════ -->
+    <div id="s-intro" class="screen active">
+        <h1 class="intro-title"><span class="t-b">KÉO CO</span><br><span class="t-r">TRÍ TUỆ</span></h1>
+        <p class="intro-sub">Tug of Quiz – Trải nghiệm kéo co tri thức đỉnh cao. Trả lời đúng để kéo thắng đối thủ!</p>
+        <div class="rules-box">
+            <h3>Luật chơi cốt lõi</h3>
+            <ul>
+                <li>Hai đội cùng đối đầu trên một câu hỏi</li>
+                <li>Đội nào nhanh và chính xác hơn sẽ chiếm ưu thế</li>
+                <li>Trả lời đúng → kéo sợi dây về phía mình</li>
+                <li>Dây vượt qua giới hạn → giành chiến thắng tuyệt đối</li>
+                <li>Chủ đề: Kinh tế thị trường định hướng XHCN</li>
+            </ul>
+        </div>
+        <button class="btn btn-gold" onclick="go('s-mode')">Bắt đầu ngay ⚡</button>
+    </div>
+
+    <!-- ══════ MODE ══════ -->
+    <div id="s-mode" class="screen">
+        <h2 style="text-align:center; margin-bottom:1rem; color:var(--gold);">Chọn đấu trường</h2>
+        <div class="mode-cards">
+            <div class="mode-card" onclick="startTeam()">
+                <h3>Chế độ Đội</h3>
+                <p>Hai đội Xanh – Đỏ đối kháng kịch tính. Sức mạnh của sự đoàn kết!</p>
+            </div>
+            <div class="mode-card" onclick="go('s-name')">
+                <h3>Chơi Cá Nhân</h3>
+                <p>Tự mình thử sức, leo lên đỉnh cao bảng xếp hạng vinh danh.</p>
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:2rem;">
+            <button class="btn btn-ghost" onclick="go('s-intro')">Quay lại</button>
+        </div>
+    </div>
+
+    <!-- ══════ TEAM GAME ══════ -->
+    <div id="s-team" class="screen">
+        <div class="g-hdr">
+            <span class="g-title">Kéo Co Đội – Đối Kháng</span>
+            <span class="g-qcnt" id="tq-cnt">Câu 1</span>
+            <span class="g-timer" id="t-timer"
+                style="padding: 0.5rem 1rem; border-radius: 50px; background:var(--glass); border:1px solid var(--gold); font-weight:800; color:var(--gold);">07:00</span>
+            <button class="btn btn-ghost" style="padding:.4rem 1rem;font-size:.8rem;height:auto;"
+                onclick="go('s-mode')">Thoát</button>
+        </div>
+
+        <!-- ARENA -->
+        <div class="arena-box">
+            <canvas id="arena-canvas" class="arena"></canvas>
+        </div>
+
+
+        <div class="central-game">
+            <!-- Removed Central Question Box (moving to individual teams) -->
+
+            <!-- Teams Reponse Area -->
+            <div class="teams-response">
+                <div class="team-section blue-team">
+                    <div class="ts-label">Đội Xanh</div>
+                    <!-- Individual Question Box -->
+                    <div class="team-q-box" id="q-blue-box">
+                        <div class="q-text" id="q-text-blue">Đang tải...</div>
+                    </div>
+                    <div class="ans-grid" id="a-blue"></div>
+                    <div class="t-st" id="st-blue"></div>
+                </div>
+                <div class="team-section red-team">
+                    <div class="ts-label">Đội Đỏ</div>
+                    <!-- Individual Question Box -->
+                    <div class="team-q-box" id="q-red-box">
+                        <div class="q-text" id="q-text-red">Đang tải...</div>
+                    </div>
+                    <div class="ans-grid" id="a-red"></div>
+                    <div class="t-st" id="st-red"></div>
+                </div>
+            </div>
+
+            <div class="auto-banner" id="auto-banner"></div>
+        </div>
+    </div>
+
+    <!-- WIN (Victory Screen) -->
+    <div class="win-ov" id="win-ov">
+        <div class="conf-layer" id="conf"></div>
+        <div class="win-content">
+            <div class="win-title" id="win-title">Đội Xanh Thắng!</div>
+            <p class="win-sub" id="win-sub" style="font-size: 1.5rem; margin-bottom: 2rem;"></p>
+            <div class="win-btns">
+                <button class="btn btn-gold" onclick="startTeam()">Chơi lại</button>
+                <button class="btn btn-ghost" onclick="closeWin()">Về Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NAME (Wall of Fame entry) -->
+    <div id="s-name" class="screen">
+        <div class="wall-of-fame-layout">
+            <!-- Left: Entry -->
+            <div class="entry-side">
+                <h2 class="entry-title">Chiến binh,<br>bạn tên là gì?</h2>
+                <p class="entry-hint">Nhập tên để ghi danh vào sử sách</p>
+                <input id="pname-in" class="name-inp-premium" type="text" placeholder="Tên của bạn..." maxlength="20" />
+                <div class="entry-btns">
+                    <button class="btn btn-gold" onclick="startSolo()">Bắt đầu hành trình ➔</button>
+                    <button class="btn btn-ghost" onclick="resetLB()"
+                        style="color:var(--red); border-color:var(--red);">Xóa BXH</button>
+                    <button class="btn btn-ghost" onclick="go('s-mode')">Quay Lại</button>
+                </div>
+            </div>
+
+            <!-- Right: Leaderboard -->
+            <div class="lb-preview-side">
+                <div class="lb-preview-card">
+                    <div class="lb-header-premium">
+                        <span class="lb-icon">🏆</span>
+                        <h3>Bức Tường Danh Vọng</h3>
+                    </div>
+                    <div id="mini-lb-list" class="mini-lb-list-premium">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOLO -->
+    <div id="s-solo" class="screen">
+        <div class="solo-hdr"
+            style="padding: 1rem 2rem; background: rgba(0,0,0,0.5); border-bottom: 1px solid var(--glass-border); display:flex; justify-content:space-between; align-items:center;">
+            <span class="solo-pn" id="s-pname"
+                style="color:var(--gold); font-family:'Baloo 2', cursive; font-size:1.2rem;">Người chơi</span>
+            <span class="solo-sp"
+                style="padding: 0.5rem 1.2rem; border-radius: 50px; background:var(--glass); border:1px solid var(--glass-border); font-weight:700;"><span
+                    id="s-score">0</span> điểm</span>
+            <button class="btn btn-ghost" style="padding:.4rem 1rem;font-size:.8rem;height:auto;"
+                onclick="go('s-mode')">Thoát</button>
+        </div>
+        <div class="tmr-track" style="height:6px; background:rgba(0,0,0,0.3);">
+            <div class="tmr-fill" id="t-bar"
+                style="height:100%; background:linear-gradient(90deg, var(--goldD), var(--gold)); width:100%; transition:width 0.1s linear;">
+            </div>
+        </div>
+        <div class="solo-container">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+                <span class="solo-qn" id="s-qnum" style="font-weight:700; color:var(--blueL);">Câu 1/10</span>
+                <span style="font-size:.85rem; color:var(--dim); font-weight:600;">Kinh tế thị trường VN</span>
+            </div>
+            <div class="main-q-box">
+                <div class="q-text" id="s-qtxt"></div>
+            </div>
+            <div class="solo-ag" id="s-ans"></div>
+            <div class="solo-fb" id="s-fb" style="font-size:1.1rem; padding: 1rem; text-align:center; min-height:3rem;">
+            </div>
+            <button class="btn btn-gold solo-nx" id="s-nxt" onclick="nextSolo()"
+                style="display:none; margin: 0 auto;">Tiếp tục ➔</button>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div id="s-lb" class="screen">
+        <div
+            style="max-width: 800px; margin: 0 auto; width:100%; padding: 2rem 1rem; display:flex; flex-direction:column; gap:2rem;">
+            <h2 style="text-align:center; color:var(--gold);">Vinh Danh Anh Hùng</h2>
+            <div class="lb-banner">
+                <div class="lb-bn" id="lb-name" style="font-size: 1.5rem; color: var(--gold); margin-bottom: 0.5rem;">
+                    Người chơi</div>
+                <div class="lb-bs" id="lb-score" style="font-size: 3.5rem; font-weight: 800; line-height:1;">0</div>
+                <div class="lb-bl" style="font-size: 1rem; margin-top: 0.5rem; color:var(--dim);">điểm / 10 câu</div>
+            </div>
+            <div
+                style="background:var(--glass); border:1px solid var(--glass-border); border-radius:30px; overflow:hidden; box-shadow:var(--shadow);">
+                <table class="lb-tbl">
+                    <thead>
+                        <tr>
+                            <th>Hạng</th>
+                            <th>Chiến binh</th>
+                            <th>Thành tích</th>
+                            <th>Thời gian</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lb-body"></tbody>
+                </table>
+            </div>
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;">
+                <button class="btn btn-gold" onclick="go('s-name')">Thử lại</button>
+                <button class="btn btn-ghost" onclick="go('s-mode')">Về Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
