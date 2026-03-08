@@ -185,20 +185,30 @@ function go(id) {
     $(id).classList.add('active');
     if (id === 's-team') startAnimation(); else stopAnimation();
     if (id !== 's-team') clearInterval(teamGlobalTimer);
-    if (id === 's-name') populateMiniLB();
+    if (id === 's-name') { lbExpanded = false; populateMiniLB(); }
 }
 
 
+let lbExpanded = false;
 function populateMiniLB() {
     let lb = []; try { lb = JSON.parse(localStorage.getItem('tq_lb') || '[]'); } catch (e) { }
     const list = $('mini-lb-list');
     if (!list) return;
     list.innerHTML = '';
+
+    const btn = $('lb-more-btn');
+    if (btn) {
+        btn.style.display = lb.length > 5 ? 'inline-flex' : 'none';
+        btn.textContent = lbExpanded ? 'Thu gọn ▴' : 'Xem thêm ▾';
+    }
+
     if (lb.length === 0) {
         list.innerHTML = '<div style="color:var(--dim); font-size:0.95rem; padding: 2rem; text-align:center;">Chưa có kỷ lục nào.<br>Hãy là người đầu tiên ghi danh!</div>';
         return;
     }
-    lb.slice(0, 5).forEach((e, i) => {
+
+    const count = lbExpanded ? lb.length : 5;
+    lb.slice(0, count).forEach((e, i) => {
         const item = document.createElement('div');
         item.className = 'mini-lb-item';
         item.innerHTML = `
@@ -210,7 +220,12 @@ function populateMiniLB() {
     });
 }
 
-let tIdx = 0, rope = 50, bScore = 0, rScore = 0, tQs = [], answered = false, autoTimer = null;
+function toggleLBExpanded() {
+    lbExpanded = !lbExpanded;
+    populateMiniLB();
+}
+
+let tIdx = 0, rope = 50, bScore = 0, rScore = 0, tQS = [], answered = false, autoTimer = null;
 let wrongCount = 0;
 let teamGlobalTimer = null, teamTimeLeft = 420; // 7 minutes
 const STEP = 14;
@@ -218,7 +233,7 @@ const STEP = 14;
 function startTeam() {
     closeWin();
     tIdx = 0; rope = 50; ropeTarget = 50; bScore = 0; rScore = 0;
-    tQs = [...QS].sort(() => Math.random() - 0.5);
+    tQS = [...QS].sort(() => Math.random() - 0.5);
     go('s-team');
     loadTQ();
     startTeamTimer();
@@ -248,7 +263,7 @@ function loadTQ() {
     answered = false;
     wrongCount = 0; // Reset wrong count for new question
     $('auto-banner').textContent = '';
-    const q = tQs[tIdx];
+    const q = tQS[tIdx];
     $('tq-cnt').textContent = `Câu ${tIdx + 1}`;
 
     // Update both question boxes
@@ -327,7 +342,7 @@ function scheduleNext(delaySec = 3) {
     if (delaySec < 1) {
         autoTimer = setTimeout(() => {
             tIdx++;
-            if (tIdx >= tQs.length) {
+            if (tIdx >= tQS.length) {
                 if (bScore > rScore) showWin('blue');
                 else if (rScore > bScore) showWin('red');
                 else showWin('draw');
@@ -347,7 +362,7 @@ function scheduleNext(delaySec = 3) {
             clearInterval(autoTimer);
             $('auto-banner').textContent = '';
             tIdx++;
-            if (tIdx >= tQs.length) {
+            if (tIdx >= tQS.length) {
                 if (bScore > rScore) showWin('blue');
                 else if (rScore > bScore) showWin('red');
                 else showWin('draw');
@@ -382,13 +397,13 @@ function showWin(team) {
 function closeWin() { $('win-ov').classList.remove('show'); go('s-mode'); }
 
 /* SOLO MODE */
-let sIdx = 0, sSc = 0, sPname = '', sQs = [], sTmr = null, sStart = 0;
+let sIdx = 0, sSc = 0, sPname = '', sQS = [], sTmr = null, sStart = 0;
 const STIME = 15;
 
 function startSolo() {
     const n = $('pname-in').value.trim(); if (!n) { $('pname-in').focus(); return; }
     sPname = n; sIdx = 0; sSc = 0;
-    sQs = [...QS].sort(() => Math.random() - .5).slice(0, 30); // Random 30 questions
+    sQS = [...QS].sort(() => Math.random() - .5).slice(0, 60); // Random questions
     sStart = Date.now();
     $('s-pname').textContent = n; $('s-score').textContent = '0';
     go('s-solo'); loadSQ();
@@ -397,8 +412,8 @@ function startSolo() {
 function loadSQ() {
     clearInterval(sTmr);
     const bar = $('t-bar'); bar.style.transition = 'none'; bar.style.width = '100%';
-    const q = sQs[sIdx];
-    $('s-qnum').textContent = `Câu ${sIdx + 1}/30`;
+    const q = sQS[sIdx];
+    $('s-qnum').textContent = `Câu ${sIdx + 1}/60`;
     $('s-qtxt').textContent = q.q;
     $('s-fb').textContent = ''; $('s-nxt').style.display = 'none';
     renderSA(q);
@@ -428,7 +443,7 @@ function soloAns(chosen, correct) {
     else { $('s-fb').textContent = '✕ SAI RỒI! ✕'; $('s-fb').style.color = 'var(--redL)'; }
 
     // Auto-next logic
-    if (sIdx < sQs.length - 1) {
+    if (sIdx < sQS.length - 1) {
         setTimeout(nextSolo, 1200);
     } else {
         setTimeout(finishSolo, 1500);
@@ -439,7 +454,7 @@ function soloTO(correct) {
     document.querySelectorAll('#s-ans .ans-btn').forEach((b, i) => { b.disabled = true; if (i === correct) b.classList.add('correct'); });
     $('s-fb').textContent = 'HẾT GIỜ!'; $('s-fb').style.color = 'var(--gold)';
 
-    if (sIdx < sQs.length - 1) {
+    if (sIdx < sQS.length - 1) {
         setTimeout(nextSolo, 1200);
     } else {
         setTimeout(finishSolo, 1500);
@@ -452,7 +467,7 @@ function finishSolo() {
     const el = Math.round((Date.now() - sStart) / 1000);
     const ts = `${~~(el / 60)}:${String(el % 60).padStart(2, '0')}`;
     let lb = []; try { lb = JSON.parse(localStorage.getItem('tq_lb') || '[]'); } catch (e) { }
-    const entry = { name: sPname, score: sSc, total: sQs.length, time: ts, ts: Date.now() };
+    const entry = { name: sPname, score: sSc, total: sQS.length, time: ts, ts: Date.now() };
     lb.push(entry); lb.sort((a, b) => b.score - a.score || a.ts - b.ts); lb = lb.slice(0, 10);
     localStorage.setItem('tq_lb', JSON.stringify(lb));
     showLB(entry, lb);

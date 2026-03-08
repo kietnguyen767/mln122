@@ -63,6 +63,12 @@ h3 {
     pointer-events: auto;
 }
 
+#s-solo,
+#s-lb,
+#s-name {
+    overflow-y: auto;
+}
+
 /* ───── INTRO ───── */
 #s-intro {
     align-items: center;
@@ -357,8 +363,8 @@ h3 {
     padding: 0.5rem 1rem;
     /* Compact padding */
     gap: 0.8rem;
-    overflow: hidden;
-    /* Strict no-scroll */
+    overflow-y: auto;
+    /* Allow scrolling if content is too tall */
 }
 
 .main-q-box {
@@ -417,7 +423,7 @@ h3 {
     margin: 0 auto;
     width: 100%;
     flex: 1;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .team-section {
