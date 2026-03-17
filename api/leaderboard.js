@@ -36,5 +36,15 @@ export default async function handler(req, res) {
         }
     }
 
+    if (req.method === 'DELETE') {
+        try {
+            await redis.del('tq_lb');
+            return res.status(200).json({ message: 'Leaderboard cleared' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Failed to clear leaderboard' });
+        }
+    }
+
     return res.status(405).json({ error: 'Method not allowed' });
 }

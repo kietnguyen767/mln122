@@ -384,16 +384,20 @@ function scheduleNext(delaySec = 3) {
     }, 1000);
 }
 
-function resetLB() {
+async function resetLB() {
     const pw = prompt('Nhập mật khẩu để xóa bảng xếp hạng:');
     if (pw === 'nammodi') {
         if (confirm('Bạn có chắc chắn muốn xóa toàn bộ bảng xếp hạng không?')) {
-            localStorage.removeItem('tq_lb');
-            populateMiniLB();
-            // Also refresh the main lb body if we are on that screen
-            const body = $('lb-body');
-            if (body) body.innerHTML = '';
-            alert('Đã xóa bảng xếp hạng thành công!');
+            try {
+                await fetch('/api/leaderboard', { method: 'DELETE' });
+                localStorage.removeItem('tq_lb');
+                populateMiniLB(true);
+                const body = $('lb-body');
+                if (body) body.innerHTML = '';
+                alert('Đã xóa bảng xếp hạng thành công!');
+            } catch (e) {
+                alert('Có lỗi xảy ra khi xóa bảng xếp hạng trực tuyến.');
+            }
         }
     } else if (pw !== null) {
         alert('Sai mật khẩu!');
@@ -411,7 +415,7 @@ function closeWin() { $('win-ov').classList.remove('show'); go('s-mode'); }
 
 /* SOLO MODE */
 let sIdx = 0, sSc = 0, sPname = '', sQS = [], sTmr = null, sStart = 0;
-const STIME = 15;
+const STIME = 30;
 
 function startSolo() {
     const n = $('pname-in').value.trim(); if (!n) { $('pname-in').focus(); return; }
