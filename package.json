@@ -1,0 +1,9 @@
+{
+  "name": "mln122",
+  "version": "1.0.0",
+  "description": "Tug of Quiz - Kéo Co Trí Tuệ",
+  "main": "index.html",
+  "dependencies": {
+    "@vercel/kv": "^1.0.1"
+  }
+}

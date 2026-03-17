@@ -185,13 +185,29 @@ function go(id) {
     $(id).classList.add('active');
     if (id === 's-team') startAnimation(); else stopAnimation();
     if (id !== 's-team') clearInterval(teamGlobalTimer);
-    if (id === 's-name') { lbExpanded = false; populateMiniLB(); }
+    if (id === 's-name') { lbExpanded = false; populateMiniLB(true); }
 }
 
 
 let lbExpanded = false;
-function populateMiniLB() {
-    let lb = []; try { lb = JSON.parse(localStorage.getItem('tq_lb') || '[]'); } catch (e) { }
+async function populateMiniLB(forceFetch = false) {
+    let lb = [];
+    try {
+        if (forceFetch) {
+            const res = await fetch('/api/leaderboard');
+            if (res.ok) {
+                lb = await res.json();
+                localStorage.setItem('tq_lb', JSON.stringify(lb));
+            } else {
+                lb = JSON.parse(localStorage.getItem('tq_lb') || '[]');
+            }
+        } else {
+            lb = JSON.parse(localStorage.getItem('tq_lb') || '[]');
+        }
+    } catch (e) {
+        lb = JSON.parse(localStorage.getItem('tq_lb') || '[]');
+    }
+
     const list = $('mini-lb-list');
     if (!list) return;
     list.innerHTML = '';
@@ -305,9 +321,6 @@ function teamAns(team, chosen, correct, btn, container) {
         else { rScore++; rope = Math.min(100, rope + STEP); }
         ropeTarget = rope;
 
-        if (ropeTarget <= 5) { setTimeout(() => showWin('blue'), 800); return; }
-        if (ropeTarget >= 95) { setTimeout(() => showWin('red'), 800); return; }
-
         answered = true;
         scheduleNext(0.8); // FAST transition on correct
     } else {
@@ -343,10 +356,10 @@ function scheduleNext(delaySec = 3) {
         autoTimer = setTimeout(() => {
             tIdx++;
             if (tIdx >= tQS.length) {
-                if (bScore > rScore) showWin('blue');
-                else if (rScore > bScore) showWin('red');
-                else showWin('draw');
-            } else loadTQ();
+                tQS = [...QS].sort(() => Math.random() - 0.5);
+                tIdx = 0;
+            }
+            loadTQ();
         }, delaySec * 1000);
         return;
     }
@@ -363,10 +376,10 @@ function scheduleNext(delaySec = 3) {
             $('auto-banner').textContent = '';
             tIdx++;
             if (tIdx >= tQS.length) {
-                if (bScore > rScore) showWin('blue');
-                else if (rScore > bScore) showWin('red');
-                else showWin('draw');
-            } else loadTQ();
+                tQS = [...QS].sort(() => Math.random() - 0.5);
+                tIdx = 0;
+            }
+            loadTQ();
         }
     }, 1000);
 }
@@ -463,13 +476,31 @@ function soloTO(correct) {
 
 function nextSolo() { sIdx++; loadSQ(); }
 
-function finishSolo() {
+async function finishSolo() {
     const el = Math.round((Date.now() - sStart) / 1000);
     const ts = `${~~(el / 60)}:${String(el % 60).padStart(2, '0')}`;
-    let lb = []; try { lb = JSON.parse(localStorage.getItem('tq_lb') || '[]'); } catch (e) { }
     const entry = { name: sPname, score: sSc, total: sQS.length, time: ts, ts: Date.now() };
-    lb.push(entry); lb.sort((a, b) => b.score - a.score || a.ts - b.ts); lb = lb.slice(0, 10);
-    localStorage.setItem('tq_lb', JSON.stringify(lb));
+
+    let lb = [];
+    try {
+        const res = await fetch('/api/leaderboard', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(entry)
+        });
+        if (res.ok) {
+            lb = await res.json();
+            localStorage.setItem('tq_lb', JSON.stringify(lb));
+        } else {
+            throw new Error();
+        }
+    } catch (e) {
+        try { lb = JSON.parse(localStorage.getItem('tq_lb') || '[]'); } catch (e2) { }
+        lb.push(entry);
+        lb.sort((a, b) => b.score - a.score || a.ts - b.ts);
+        lb = lb.slice(0, 20);
+        localStorage.setItem('tq_lb', JSON.stringify(lb));
+    }
     showLB(entry, lb);
 }
 
